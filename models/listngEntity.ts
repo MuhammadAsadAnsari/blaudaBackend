@@ -36,7 +36,7 @@ export class Listing {
   manufactured: string;
 
   @Column()
-  firstRegistrationDate: Date;
+  firstRegistrationDate: string;
 
   @Column()
   engineSize: string;

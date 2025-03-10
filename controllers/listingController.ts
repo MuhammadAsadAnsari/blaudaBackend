@@ -16,7 +16,7 @@ const getListingRepo = (): Repository<Listing> => {
 };
 
 export const addListing = catchAsync(
-  async (req: IListing, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {
     const {
       location,
       city,
@@ -40,9 +40,8 @@ export const addListing = catchAsync(
       price,
       fuelType,
       name,
-      photo,
       From,
-    } = req.body;
+    } = JSON.parse(req.body.data);
     const files = req.files as { [fieldname: string]: S3File[] };
 
     if (!files?.photos)
@@ -123,6 +122,7 @@ export const addListing = catchAsync(
     return res.status(201).json({ success: true, data: newListing });
   }
 );
+
 export const getAllListings = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const listingRepo: Repository<Listing> = getListingRepo();
@@ -225,7 +225,7 @@ export const toggleActiveListing = catchAsync(
 );
 export const updateListing = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-
+console.log("req.body",req.body)
     const slug = req.params.slug;
     
     const files = req.files as { [fieldname: string]: S3File[] };
