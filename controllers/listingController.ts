@@ -1,12 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import catchAsync from '../utils/catchAsync';
 import { IListing } from '../interfaces/listingInterface';
-import { ILike, Repository } from 'typeorm';
+import {
+  Between,
+  ILike,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { Listing } from '../models/listngEntity';
 import { AppDataSource } from '../server';
 import { S3File } from '../interfaces/s3Interface';
 import AppError from '../utils/appError';
-import {deleteImage} from "../utils/s3"
+import { deleteImage } from '../utils/s3';
 
 const getListingRepo = (): Repository<Listing> => {
   if (!AppDataSource.isInitialized) {
@@ -30,7 +37,7 @@ export const addListing = catchAsync(
       manufactured,
       firstRegistrationDate,
       engineSize,
-      milleage,
+      mileage,
       seats,
       driveType,
       bodyType,
@@ -41,9 +48,10 @@ export const addListing = catchAsync(
       fuelType,
       name,
       From,
-    } = JSON.parse(req.body.data);
+    } = req.body;
     const files = req.files as { [fieldname: string]: S3File[] };
 
+    console.log('req.body', req.body);
     if (!files?.photos)
       return next(new AppError('minium one photo is required', 400));
 
@@ -60,7 +68,7 @@ export const addListing = catchAsync(
       !manufactured ||
       !firstRegistrationDate ||
       !engineSize ||
-      !milleage ||
+      !mileage ||
       !seats ||
       !driveType ||
       !bodyType ||
@@ -98,7 +106,7 @@ export const addListing = catchAsync(
       manufactured,
       firstRegistrationDate,
       engineSize,
-      milleage,
+      mileage,
       seats,
       driveType,
       bodyType,
@@ -225,28 +233,309 @@ export const toggleActiveListing = catchAsync(
 );
 export const updateListing = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-console.log("req.body",req.body)
+    console.log('req.body', req.body);
     const slug = req.params.slug;
-    
+
     const files = req.files as { [fieldname: string]: S3File[] };
 
     const listingRepo: Repository<Listing> = getListingRepo();
 
     const listing = await listingRepo.findOne({ where: { slug } });
 
-    console.log("🚀 ~ listing:", listing)
+    console.log('🚀 ~ listing:', listing);
     if (!listing) return next(new AppError('Listing not found', 404));
 
-   if(files.photos) {req.body.photos = files.photos.map((photo)=>photo.key)
-    await Promise.all(listing.photos.map((photo) => deleteImage(photo)));
-   }
-  
-   Object.assign(listing, req.body);
-   await listingRepo.save(listing);
-   
+    if (files.photos) {
+      req.body.photos = files.photos.map((photo) => photo.key);
+      await Promise.all(listing.photos.map((photo) => deleteImage(photo)));
+    }
+
+    console.log('req.body', req.body);
+    Object.assign(listing, JSON.parse(req.body.data));
+
+    await listingRepo.save(listing);
+
     res.status(200).json({
       status: 'success',
       data: { listing },
     });
+  }
+);
+
+export const getListingDetailsForUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const slug = req.params.slug;
+    const listingRepo: Repository<Listing> = getListingRepo();
+
+    const listing = await listingRepo.findOne({
+      where: { slug, status: 'Active' },
+      select: [
+        'make',
+        'model',
+        'location',
+        'city',
+        'offerNo',
+        'chassisNo',
+        'carStatus',
+        'grade',
+        'modelYear',
+        'manufactured',
+        'firstRegistrationDate',
+        'engineSize',
+        'mileage',
+        'seats',
+        'driveType',
+        'bodyType',
+        'steering',
+        'transmission',
+        'color',
+        'price',
+        'fuelType',
+        'name',
+        'photos',
+        'From',
+      ],
+    });
+
+    if (!listing) return next(new AppError('Listing not found', 404));
+
+    res.status(200).json({
+      status: 'success',
+      data: { listing },
+    });
+  }
+);
+export const getAllListingsForHomePage = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const slug = req.params.slug;
+    console.log('🚀 ~ slug:', slug);
+
+    const listingRepo: Repository<Listing> = getListingRepo();
+
+    const recommendedListings = await listingRepo.find({
+      where: { status: 'Active' },
+      select: [
+        'slug',
+        'name',
+        'modelYear',
+        'city',
+        'location',
+        'price',
+        'photos',
+      ],
+      order: { id: 'DESC' },
+      take: 12,
+    });
+
+    if (!recommendedListings)
+      return next(new AppError('Listing not found', 404));
+
+    const dubaiListings = await listingRepo.find({
+      where: { From: 'Dubai', status: 'Active' },
+      select: [
+        'slug',
+        'name',
+        'modelYear',
+        'city',
+        'location',
+        'price',
+        'photos',
+      ],
+      order: { id: 'DESC' },
+      take: 12,
+    });
+
+    if (!dubaiListings) return next(new AppError('Listing not found', 404));
+
+    const japanListings = await listingRepo.find({
+      where: { From: 'Japan', status: 'Active' },
+      select: [
+        'slug',
+        'name',
+        'modelYear',
+        'city',
+        'location',
+        'price',
+        'photos',
+      ],
+      order: { id: 'DESC' },
+      take: 12,
+    });
+
+    if (!japanListings) return next(new AppError('Listing not found', 404));
+
+    const thailandListings = await listingRepo.find({
+      where: { From: 'Thailand', status: 'Active' },
+      select: [
+        'slug',
+        'name',
+        'modelYear',
+        'city',
+        'location',
+        'price',
+        'photos',
+      ],
+      order: { id: 'DESC' },
+      take: 12,
+    });
+
+    if (!thailandListings) return next(new AppError('Listing not found', 404));
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        recommendedListings,
+        dubaiListings,
+        japanListings,
+        thailandListings,
+      },
+    });
+  }
+);
+export const getListingsCount = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const slug = req.params.slug;
+    console.log('🚀 ~ slug:', slug);
+    const listingRepo: Repository<Listing> = getListingRepo();
+    console.log('🚀 ~ listingRepo:', listingRepo);
+
+    const data = await listingRepo.count({
+      where: { status: 'Active' },
+    });
+
+    res.status(200).json({
+      status: 'success',
+      data,
+    });
+  }
+);
+export const getAllListingsForUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const listingRepo: Repository<Listing> = getListingRepo();
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 400;
+    const skip = (page - 1) * limit;
+
+    const {
+      make,
+      model,
+      color,
+      bodyType,
+      minYear,
+      maxYear,
+      minKm,
+      maxKm,
+      transmission,
+      fuelType,
+      search,
+      From,
+    } = req.body;
+
+    console.log('🚀 ~ getAllListings ~ search:', typeof search);
+
+    // Apply search filter
+
+    let whereConditions: any = {
+      ...(make && { make }),
+      ...(model && { model }),
+      ...(color && { color }),
+      ...(bodyType && { bodyType }),
+      ...(transmission && { transmission }),
+      ...(fuelType && { fuelType }),
+      ...(From && From !== 'all' && { From }),
+      status: 'Active',
+      ...(minYear && { modelYear: MoreThanOrEqual(minYear) }),
+      ...(maxYear && { modelYear: LessThanOrEqual(maxYear) }),
+
+      // Apply mileage conditions
+      ...(minKm && { mileage: MoreThanOrEqual(minKm) }),
+      ...(maxKm && { mileage: LessThanOrEqual(maxKm) }),
+    };
+    if (search) {
+      whereConditions = [
+        { name: ILike(`%${search}%`) },
+        { chassisNo: ILike(`%${search}%`) },
+        { make: ILike(`%${search}%`) },
+        { model: ILike(`%${search}%`) },
+        { color: ILike(`%${search}%`) },
+      ];
+    }
+
+    // Apply other filters dynamically
+
+    const listings = await listingRepo.findAndCount({
+      select: [
+        'slug',
+        'name',
+        'modelYear',
+        'chassisNo',
+        'steering',
+        'price',
+        'photos',
+        'fuelType',
+        'color',
+        'mileage',
+        'model',
+      ],
+      where: whereConditions,
+      take: limit,
+      skip: skip,
+      order: { id: 'DESC' },
+    });
+
+    if (!listings) return next(new AppError('No listings found', 400));
+
+    return res
+      .status(200)
+      .json({ success: true, data: listings[0], totalRecords: listings[1] });
+  }
+);
+export const getAllRecommendedListingsForUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const listingRepo: Repository<Listing> = getListingRepo();
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 400;
+    const skip = (page - 1) * limit;
+
+    const slug = req.params.slug;
+
+    const model = req.body.model;
+
+    if (!slug) return next(new AppError('Please provide car slug', 404));
+
+    const foundListing = await listingRepo.findOne({
+      where: { slug, status: 'Active' },
+    });
+
+    if (!foundListing) return next(new AppError('Car not found', 404));
+
+    const listings = await listingRepo.findAndCount({
+      select: [
+        'slug',
+        'name',
+        'modelYear',
+        'chassisNo',
+        'steering',
+        'price',
+        'photos',
+        'fuelType',
+        'color',
+        'mileage',
+        'model',
+      ],
+      where: {
+        model: ILike(`%${model}%`),
+        slug: Not(slug),
+      },
+      take: limit,
+      skip: skip,
+      order: { id: 'DESC' },
+    });
+
+    if (!listings) return next(new AppError('No listings found', 400));
+
+    return res
+      .status(200)
+      .json({ success: true, data: listings[0], totalRecords: listings[1] });
   }
 );

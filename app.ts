@@ -16,9 +16,11 @@ import globalErrorHandler from './controllers/errorController';
 import userRouter from './routes/userRoutes';
 import adminRouter from './routes/adminRoutes';
 import contactUsRouter from './routes/contactusRoute';
+import listingRouter from "./routes/listingRoutes"
 
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsDoc from 'swagger-jsdoc';
+import { listenerCount } from 'process';
 
 
 export const app = require('express')();
@@ -115,6 +117,8 @@ app.get('/', (req: Request, res: Response) => {
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/contact-us', contactUsRouter);
+app.use('/api/v1/listing', listingRouter);
+
 
 
 

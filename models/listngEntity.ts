@@ -42,7 +42,7 @@ export class Listing {
   engineSize: string;
 
   @Column()
-  milleage: string;
+  mileage: number;
 
   @Column()
   seats: number;
