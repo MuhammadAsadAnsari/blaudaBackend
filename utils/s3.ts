@@ -11,11 +11,11 @@ require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 
-const imageBucket = process.env.AWS_IMAGE_BUCKET_NAME;
-const pdfBucket = process.env.AWS_IMAGE_BUCKET_NAME;
-const region = process.env.AWS_BUCKET_REGION;
-const accessKeyId = process.env.AWS_ACCESS_KEY;
-const secretAccessKey = process.env.AWS_SECRET_KEY;
+const imageBucket = process.env.AWS_IMAGE_BUCKET_NAMES;
+const pdfBucket = process.env.AWS_IMAGE_BUCKET_NAMES;
+const region = process.env.AWS_BUCKET_REGIONS;
+const accessKeyId = process.env.AWS_ACCESS_KEYS;
+const secretAccessKey = process.env.AWS_SECRET_KEYS;
 
 const s3 = new S3({
   region,
