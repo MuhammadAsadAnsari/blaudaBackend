@@ -1,0 +1,37 @@
+NODE_ENV=production
+PORT=3040
+
+# clients credentials
+
+DATABASE_URL='postgresql://neondb_owner:npg_cMD8bStlf6pu@ep-gentle-shadow-a15j2ham-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+DATABASE_PASSWORD=sbedUEOauuI8Ifpa
+
+JWT_SECRET=my-ultra-secure-and-ultra-lon**55-/--g-se-ocg&@4Sbwka3F-cret-har$-2@-sasja
+JWT_EXPIRES_IN=90
+JWT_COOKIE_EXPIRES_IN=90
+
+EMAIL_USERNAME=a124458539192a
+EMAIL_PASSWORD=1e3caf48074eba
+EMAIL_HOST=smtp.mailtrap.io
+EMAIL_PORT=25
+
+# client ID 
+EMAIL_FROM=owaiskahoo@gmail.com
+
+# heres the test mode stripe keys
+
+
+
+# AWS credentials
+AWS_BUCKET_REGIONS="eu-north-1"
+AWS_ACCESS_KEYS="AKIARWPFIISJLXCF4SPH"
+AWS_SECRET_KEYS="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"
+
+# Development Bucket
+
+AWS_VIDEO_BUCKET_LINKS="https://car-development.s3.eu-north-1.amazonaws.com/"
+AWS_USERNAMES="car-user"
+AWS_IMAGE_BUCKET_NAMES="car-development"
+
+
+
