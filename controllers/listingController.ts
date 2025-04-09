@@ -233,7 +233,6 @@ export const toggleActiveListing = catchAsync(
 );
 export const updateListing = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log('req.body', req.body);
     const slug = req.params.slug;
 
     const files = req.files as { [fieldname: string]: S3File[] };
@@ -242,16 +241,18 @@ export const updateListing = catchAsync(
 
     const listing = await listingRepo.findOne({ where: { slug } });
 
-    console.log('🚀 ~ listing:', listing);
     if (!listing) return next(new AppError('Listing not found', 404));
 
-    if (files.photos) {
-      req.body.photos = files.photos.map((photo) => photo.key);
-      await Promise.all(listing.photos.map((photo) => deleteImage(photo)));
+    // Ensure body is parsed
+    if (typeof req.body.data === 'string') {
+      req.body.data = JSON.parse(req.body.data);
     }
 
-    console.log('req.body', req.body);
-    Object.assign(listing, JSON.parse(req.body.data));
+    if (files.photos) {
+      req.body.data.photos = files.photos.map((photo) => photo.key);
+    }
+
+    Object.assign(listing, req.body.data);
 
     await listingRepo.save(listing);
 
@@ -431,7 +432,7 @@ export const getAllListingsForUser = catchAsync(
       From,
     } = req.body;
 
-    console.log('🚀 ~ getAllListings ~ search:', make,model);
+    console.log('🚀 ~ getAllListings ~ search:', make, model);
 
     // Apply search filter
 

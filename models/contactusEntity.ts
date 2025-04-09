@@ -8,12 +8,15 @@ export class ContactUs {
   @Column()
   slug: string;
 
-  @Column({nullable:false})
-  name:string
+  @Column({ nullable: false })
+  name: string;
+
+  @Column({ nullable: false })
+  email: string;
+
+  @Column({ nullable: false })
+  phoneNumber: string;
 
   @Column({nullable:false})
-  email:string
-
-  @Column({nullable:false})
-  phoneNumber:string
+  requirements: string;
 }

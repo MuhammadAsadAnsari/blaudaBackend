@@ -15,9 +15,9 @@ const getContactUsRepo = (): Repository<ContactUs> => {
 
 export const addContactUs = catchAsync(
   async (req: IContactUs, res: Response, next: NextFunction) => {
-    const { name, email, phoneNumber } = req.body;
-
-    if (!name || !email || !phoneNumber)
+    const { name, email, phoneNumber, requirements } = req.body;
+console.log("REQ.BODY",name,email,phoneNumber,req.body)
+    if (!name || !email || !phoneNumber || !requirements)
       return next(new AppError('All fields are required', 400));
 
     const ContactUsRepo: Repository<ContactUs> = getContactUsRepo();
@@ -36,6 +36,7 @@ export const addContactUs = catchAsync(
       name,
       email,
       phoneNumber,
+      requirements,
       slug: `contactUs-${newId}`,
     });
 
@@ -64,13 +65,13 @@ export const getAllContactUs = catchAsync(
           { email: ILike(`%${search}%`) },
           { phoneNumber: ILike(`%${search}%`) },
         ],
-        select: ["name","email","phoneNumber"],
+        select: ['name', 'email', 'phoneNumber', 'requirements'],
         take: limit,
         skip: skip,
       });
     } else {
       data = await contactUsRepo.findAndCount({
-        select: ['name', 'email', 'phoneNumber'],
+        select: ['name', 'email', 'phoneNumber', 'requirements'],
 
         take: limit,
         skip: skip,

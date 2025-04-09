@@ -116,7 +116,9 @@ export const uploadUserImage = uploadImage.fields([
   {
     name: 'photos',
   },
-  
+  {
+    name: 'photo',
+  },
 ]);
 
 export const getUploadingSignedURL = async (Key:string, Expires = 15004) => {
