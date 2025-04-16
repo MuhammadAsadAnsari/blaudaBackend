@@ -5,6 +5,9 @@ import { ContactUs } from '../models/contactusEntity';
 import { AppDataSource } from '../server';
 import { IContactUs } from '../interfaces/ContactusInterface';
 import AppError from '../utils/appError';
+import { Role, User } from '../models/userEntity';
+import { getUserRepo } from './userController';
+import Email from '../utils/email';
 
 const getContactUsRepo = (): Repository<ContactUs> => {
   if (!AppDataSource.isInitialized) {
@@ -16,7 +19,7 @@ const getContactUsRepo = (): Repository<ContactUs> => {
 export const addContactUs = catchAsync(
   async (req: IContactUs, res: Response, next: NextFunction) => {
     const { name, email, phoneNumber, requirements } = req.body;
-console.log("REQ.BODY",name,email,phoneNumber,req.body)
+    console.log('REQ.BODY', name, email, phoneNumber, req.body);
     if (!name || !email || !phoneNumber || !requirements)
       return next(new AppError('All fields are required', 400));
 
@@ -27,10 +30,9 @@ console.log("REQ.BODY",name,email,phoneNumber,req.body)
       where: {},
       order: { id: 'DESC' }, // Get the most recent entry
     });
-    
 
- const newId = (lastContact?.id ?? 0) + 1;
- // Increment last ID or start from 1
+    const newId = (lastContact?.id ?? 0) + 1;
+    // Increment last ID or start from 1
 
     const data = ContactUsRepo.create({
       name,
@@ -41,6 +43,18 @@ console.log("REQ.BODY",name,email,phoneNumber,req.body)
     });
 
     await ContactUsRepo.save(data);
+
+    const userRepo: Repository<User> = getUserRepo();
+    const foundAdmins = await userRepo.find({
+      where: { role: Role.ADMIN },
+    });
+    console.log('🚀 ~ admins:', foundAdmins);
+
+    await Promise.all(
+      foundAdmins?.map?.(
+        async (admin) => await new Email(admin, 'url').sendQueryEmail()
+      )
+    );
 
     return res.status(201).json({ success: true, data });
   }

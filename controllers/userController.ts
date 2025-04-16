@@ -12,7 +12,7 @@ import { Repository } from 'typeorm';
 import { User } from '../models/userEntity';
 import { AppDataSource } from '../server';
 
-const getUserRepo = (): Repository<User> => {
+export const getUserRepo = (): Repository<User> => {
   if (!AppDataSource.isInitialized) {
     throw new Error('Database is not initialized yet!');
   }

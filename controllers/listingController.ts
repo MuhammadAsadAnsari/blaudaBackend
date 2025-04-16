@@ -234,6 +234,7 @@ export const toggleActiveListing = catchAsync(
 export const updateListing = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const slug = req.params.slug;
+    
 
     const files = req.files as { [fieldname: string]: S3File[] };
 
@@ -247,11 +248,14 @@ export const updateListing = catchAsync(
     if (typeof req.body.data === 'string') {
       req.body.data = JSON.parse(req.body.data);
     }
+    console.log('🚀 ~ files:', files.photos);
 
-    if (files.photos) {
-      req.body.data.photos = files.photos.map((photo) => photo.key);
+
+    if (files?.photos) {
+      req.body.data.photos = files?.photos.map((photo) => photo.key);
+      await Promise.all(listing.photos.map((photo) => deleteImage(photo)));
     }
-
+    console.log("aaa")
     Object.assign(listing, req.body.data);
 
     await listingRepo.save(listing);
