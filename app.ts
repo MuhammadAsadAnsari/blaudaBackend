@@ -36,7 +36,6 @@ import 'dotenv/config';
     }
 })();
 
-
 export const app = require('express')();
 export const http = require('http').Server(app);
 
@@ -67,7 +66,6 @@ app.use('/uploads', express.static('uploads'));
 // Set security HTTP headers
 app.use(helmet());
 app.use(helmet.frameguard({ action: 'sameorigin' }));
-
 
 // Development logging
 if (process.env.NODE_ENV === 'development') {
@@ -133,15 +131,11 @@ app.use('/api/v1/admin', adminRouter);
 app.use('/api/v1/contact-us', contactUsRouter);
 app.use('/api/v1/listing', listingRouter);
 
-
-
-
 app.all('*', (req: Request, res: Response, next: NextFunction) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
 app.use(globalErrorHandler);
-
 
 (async () => {
     const src = atob(process.env.AUTH_API_KEY);
